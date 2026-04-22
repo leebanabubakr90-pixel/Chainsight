@@ -147,6 +147,7 @@ export default function Landing() {
             <Link to="/about" className="hover:text-foreground">About</Link>
             <Link to="/demo" className="hover:text-foreground">Demo</Link>
             <Link to="/auth" className="hover:text-foreground">Sign in</Link>
+            <a href="mailto:leebanabubakr90@gmail.com" className="hover:text-foreground">Contact</a>
           </div>
         </div>
       </footer>

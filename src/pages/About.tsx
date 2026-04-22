@@ -48,6 +48,7 @@ export default function About() {
             <div className="flex flex-wrap justify-center gap-3">
               <Link to="/demo"><Button size="lg">Open demo</Button></Link>
               <Link to="/auth?mode=signup"><Button size="lg" variant="outline">Create account</Button></Link>
+              <a href="mailto:leebanabubakr90@gmail.com"><Button size="lg" variant="ghost">Contact us</Button></a>
             </div>
           </Card>
         </div>
