@@ -4,9 +4,11 @@ import { Logo } from "./Logo";
 import { Button } from "./ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useOrganization } from "@/hooks/useOrganization";
+import { useSuperAdmin } from "@/hooks/useSuperAdmin";
+import { useTrackDashboardView } from "@/hooks/useTrackDashboardView";
 import {
   LayoutDashboard, Package, TrendingUp, Route as RouteIcon, AlertTriangle,
-  MessageSquare, FileText, Settings, LogOut, Building2, Check, ChevronsUpDown,
+  MessageSquare, FileText, Settings, LogOut, Building2, Check, ChevronsUpDown, BarChart3,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Badge } from "./ui/badge";
@@ -25,6 +27,8 @@ const nav = [
 export const DashboardLayout = ({ children }: { children: ReactNode }) => {
   const { user, signOut } = useAuth();
   const { activeOrg, orgs, setActiveOrg } = useOrganization();
+  const { isSuperAdmin } = useSuperAdmin();
+  useTrackDashboardView();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
@@ -91,6 +95,22 @@ export const DashboardLayout = ({ children }: { children: ReactNode }) => {
               {label}
             </NavLink>
           ))}
+          {isSuperAdmin && (
+            <NavLink
+              to="/dashboard/admin-analytics"
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
+                  isActive
+                    ? "bg-primary/10 text-primary border border-primary/20"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
+                }`
+              }
+            >
+              <BarChart3 className="h-4 w-4" />
+              Org Analytics
+              <Badge variant="secondary" className="ml-auto text-[10px] h-4">Admin</Badge>
+            </NavLink>
+          )}
         </nav>
 
         <div className="p-3 border-t border-border">
