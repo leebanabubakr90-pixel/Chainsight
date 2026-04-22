@@ -16,6 +16,7 @@ import Bottlenecks from "./pages/dashboard/Bottlenecks";
 import Assistant from "./pages/dashboard/Assistant";
 import Reports from "./pages/dashboard/Reports";
 import OrganizationPage from "./pages/dashboard/Organization";
+import AdminAnalytics from "./pages/dashboard/AdminAnalytics";
 import { AuthProvider } from "./hooks/useAuth";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { GuidedTour } from "./components/GuidedTour";
@@ -43,6 +44,7 @@ const App = () => (
             <Route path="/dashboard/assistant" element={<ProtectedRoute><Assistant /></ProtectedRoute>} />
             <Route path="/dashboard/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
             <Route path="/dashboard/organization" element={<ProtectedRoute><OrganizationPage /></ProtectedRoute>} />
+            <Route path="/dashboard/admin-analytics" element={<ProtectedRoute><AdminAnalytics /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

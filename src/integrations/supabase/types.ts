@@ -132,6 +132,44 @@ export type Database = {
           },
         ]
       }
+      dashboard_events: {
+        Row: {
+          day: string
+          event_type: string
+          id: string
+          occurred_at: string
+          organization_id: string
+          path: string | null
+          user_id: string
+        }
+        Insert: {
+          day?: string
+          event_type: string
+          id?: string
+          occurred_at?: string
+          organization_id: string
+          path?: string | null
+          user_id: string
+        }
+        Update: {
+          day?: string
+          event_type?: string
+          id?: string
+          occurred_at?: string
+          organization_id?: string
+          path?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dashboard_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       forecasts: {
         Row: {
           confidence: number | null
@@ -431,6 +469,27 @@ export type Database = {
           },
         ]
       }
+      user_app_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role_global"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role_global"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role_global"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -448,10 +507,25 @@ export type Database = {
         Args: { _org_id: string; _user_id: string }
         Returns: boolean
       }
+      is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      org_dashboard_analytics: {
+        Args: never
+        Returns: {
+          active_30d: number
+          active_7d: number
+          is_demo: boolean
+          last_activity: string
+          organization_id: string
+          organization_name: string
+          total_views: number
+          unique_users: number
+        }[]
+      }
       user_org_ids: { Args: { _user_id: string }; Returns: string[] }
     }
     Enums: {
       app_role: "admin" | "member"
+      app_role_global: "super_admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -580,6 +654,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "member"],
+      app_role_global: ["super_admin", "user"],
     },
   },
 } as const
