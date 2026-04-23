@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   Activity, TrendingUp, Route, AlertTriangle, MessageSquare,
   FileText, Sparkles, ArrowRight, ShieldCheck, Globe2, Zap,
-  Instagram,
 } from "lucide-react";
 
 const features = [
@@ -149,15 +148,6 @@ export default function Landing() {
             <Link to="/demo" className="hover:text-foreground">Demo</Link>
             <Link to="/auth" className="hover:text-foreground">Sign in</Link>
             <a href="mailto:leebanabubakr90@gmail.com" className="hover:text-foreground">Contact</a>
-            <a
-              href="https://www.instagram.com/leebanlabs/"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Instagram"
-              className="inline-flex items-center gap-1.5 hover:text-foreground"
-            >
-              <Instagram className="h-4 w-4" /> Instagram
-            </a>
           </div>
         </div>
       </footer>
