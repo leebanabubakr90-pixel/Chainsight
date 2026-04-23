@@ -20,6 +20,7 @@ import AdminAnalytics from "./pages/dashboard/AdminAnalytics";
 import { AuthProvider } from "./hooks/useAuth";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { GuidedTour } from "./components/GuidedTour";
+import { OrgSettingsProvider } from "./hooks/useOrgSettings";
 
 const queryClient = new QueryClient();
 
@@ -30,8 +31,9 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <GuidedTour />
-          <Routes>
+          <OrgSettingsProvider>
+            <GuidedTour />
+            <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/about" element={<About />} />
             <Route path="/demo" element={<Demo />} />
@@ -46,7 +48,8 @@ const App = () => (
             <Route path="/dashboard/organization" element={<ProtectedRoute><OrganizationPage /></ProtectedRoute>} />
             <Route path="/dashboard/admin-analytics" element={<ProtectedRoute><AdminAnalytics /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
-          </Routes>
+            </Routes>
+          </OrgSettingsProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

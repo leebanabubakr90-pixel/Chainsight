@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Badge } from "./ui/badge";
+import { SettingsModal } from "./SettingsModal";
+import { useOrgSettings } from "@/hooks/useOrgSettings";
 
 const nav = [
   { to: "/dashboard", label: "Overview", icon: LayoutDashboard },
@@ -28,9 +30,11 @@ export const DashboardLayout = ({ children }: { children: ReactNode }) => {
   const { user, signOut } = useAuth();
   const { activeOrg, orgs, setActiveOrg } = useOrganization();
   const { isSuperAdmin } = useSuperAdmin();
+  const { settings } = useOrgSettings();
   useTrackDashboardView();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const handleSignOut = async () => { await signOut(); navigate("/"); };
 
@@ -122,8 +126,21 @@ export const DashboardLayout = ({ children }: { children: ReactNode }) => {
       </aside>
 
       <main className="flex-1 overflow-auto">
+        <header className="sticky top-0 z-20 flex items-center justify-end gap-2 border-b border-border/60 bg-background/70 backdrop-blur-md px-6 py-2.5">
+          <Badge variant="outline" className="font-mono text-[10px]">{settings.currency}</Badge>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setSettingsOpen(true)}
+            aria-label="Open settings"
+            title="Workspace settings"
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
+        </header>
         <div className="container py-8">{children}</div>
       </main>
+      <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />
     </div>
   );
 };
