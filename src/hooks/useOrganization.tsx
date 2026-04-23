@@ -23,6 +23,8 @@ export const useOrganization = () => {
       return;
     }
     setLoading(true);
+    // Auto-accept any pending invitations addressed to this user
+    try { await supabase.rpc("accept_my_pending_invites"); } catch { /* ignore */ }
     // memberships
     const { data: memberships } = await supabase
       .from("organization_members")
