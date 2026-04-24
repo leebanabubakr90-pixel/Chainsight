@@ -260,8 +260,59 @@ export default function OrganizationPage() {
                 </Button>
               </form>
               <p className="text-xs text-muted-foreground mt-3">
-                Existing accounts are added immediately. New emails get a pending invite that activates the moment they sign up.
+                Existing accounts are added immediately. New emails get a pending invite that activates the moment they sign up. Email delivery requires a verified sender domain — until then, share the signup link with them directly.
               </p>
+            </Card>
+          )}
+
+          {isAdmin && !activeOrg.is_demo && (
+            <Card className="p-6 mb-5 bg-card/60">
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <IdCard className="h-5 w-5 text-primary" />
+                  <h3 className="text-lg font-semibold">Staff already at the company</h3>
+                  <Badge variant="outline">{staff.length}</Badge>
+                </div>
+                <Dialog open={staffOpen} onOpenChange={setStaffOpen}>
+                  <DialogTrigger asChild><Button size="sm" variant="outline"><Plus className="h-4 w-4 mr-2" /> Add staff record</Button></DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader><DialogTitle>Add staff details</DialogTitle></DialogHeader>
+                    <form onSubmit={addStaff} className="space-y-3">
+                      <div><Label>Full name</Label><Input name="full_name" required maxLength={120} /></div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div><Label>Email (optional)</Label><Input name="email" type="email" maxLength={255} /></div>
+                        <div><Label>Phone</Label><Input name="phone" maxLength={40} /></div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div><Label>ID / Passport #</Label><Input name="id_number" maxLength={60} /></div>
+                        <div><Label>Position</Label><Input name="position" maxLength={80} /></div>
+                      </div>
+                      <div><Label>Notes</Label><Input name="notes" maxLength={500} /></div>
+                      <Button type="submit" className="w-full">Save staff record</Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+              <p className="text-xs text-muted-foreground mb-3">For staff already on-site, capture their details directly instead of sending email invites.</p>
+              {staff.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No staff records yet.</p>
+              ) : (
+                <div className="space-y-2">
+                  {staff.map((s) => (
+                    <div key={s.id} className="flex items-center justify-between p-3 rounded-md bg-background/40 border border-border/60 gap-3 flex-wrap">
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium">{s.full_name} {s.position && <span className="text-muted-foreground">· {s.position}</span>}</div>
+                        <div className="text-xs text-muted-foreground flex flex-wrap gap-x-3">
+                          {s.email && <span><Mail className="h-3 w-3 inline mr-1" />{s.email}</span>}
+                          {s.phone && <span><Phone className="h-3 w-3 inline mr-1" />{s.phone}</span>}
+                          {s.id_number && <span><IdCard className="h-3 w-3 inline mr-1" />{s.id_number}</span>}
+                        </div>
+                      </div>
+                      <Button size="icon" variant="ghost" onClick={() => removeStaff(s.id)} aria-label="Remove"><Trash2 className="h-4 w-4" /></Button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </Card>
           )}
 
