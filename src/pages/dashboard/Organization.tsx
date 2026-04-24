@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useOrganization } from "@/hooks/useOrganization";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Building2, Plus, Users, Sparkles, Loader2, Mail, UserPlus, Trash2, ShieldCheck, Clock } from "lucide-react";
+import { Building2, Plus, Users, Sparkles, Loader2, Mail, UserPlus, Trash2, ShieldCheck, Clock, IdCard, Phone } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -29,6 +29,8 @@ export default function OrganizationPage() {
   const [inviting, setInviting] = useState(false);
   const [seeding, setSeeding] = useState(false);
   const [open, setOpen] = useState(false);
+  const [staff, setStaff] = useState<any[]>([]);
+  const [staffOpen, setStaffOpen] = useState(false);
 
   const loadMembers = useCallback(async () => {
     if (!activeOrg) return;
@@ -63,10 +65,21 @@ export default function OrganizationPage() {
     setInvites(data || []);
   }, [activeOrg?.id]);
 
+  const loadStaff = useCallback(async () => {
+    if (!activeOrg) return;
+    const { data } = await supabase
+      .from("staff_details")
+      .select("*")
+      .eq("organization_id", activeOrg.id)
+      .order("created_at", { ascending: false });
+    setStaff(data || []);
+  }, [activeOrg?.id]);
+
   useEffect(() => {
     loadMembers();
     loadInvites();
-  }, [loadMembers, loadInvites]);
+    loadStaff();
+  }, [loadMembers, loadInvites, loadStaff]);
 
   const createOrg = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -150,6 +163,34 @@ export default function OrganizationPage() {
 
   const isAdmin = myRole === "admin";
 
+  const addStaff = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!activeOrg || !user) return;
+    const f = new FormData(e.currentTarget);
+    const payload = {
+      organization_id: activeOrg.id,
+      full_name: String(f.get("full_name") || "").trim(),
+      email: String(f.get("email") || "").trim() || null,
+      phone: String(f.get("phone") || "").trim() || null,
+      id_number: String(f.get("id_number") || "").trim() || null,
+      position: String(f.get("position") || "").trim() || null,
+      notes: String(f.get("notes") || "").trim() || null,
+      added_by: user.id,
+    };
+    if (!payload.full_name) return;
+    const { error } = await supabase.from("staff_details").insert(payload);
+    if (error) { toast({ title: "Couldn't add", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Staff added", description: payload.full_name });
+    setStaffOpen(false);
+    loadStaff();
+  };
+
+  const removeStaff = async (id: string) => {
+    const { error } = await supabase.from("staff_details").delete().eq("id", id);
+    if (error) { toast({ title: "Couldn't remove", description: error.message, variant: "destructive" }); return; }
+    loadStaff();
+  };
+
   return (
     <DashboardLayout>
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
@@ -219,8 +260,59 @@ export default function OrganizationPage() {
                 </Button>
               </form>
               <p className="text-xs text-muted-foreground mt-3">
-                Existing accounts are added immediately. New emails get a pending invite that activates the moment they sign up.
+                Existing accounts are added immediately. New emails get a pending invite that activates the moment they sign up. Email delivery requires a verified sender domain — until then, share the signup link with them directly.
               </p>
+            </Card>
+          )}
+
+          {isAdmin && !activeOrg.is_demo && (
+            <Card className="p-6 mb-5 bg-card/60">
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <IdCard className="h-5 w-5 text-primary" />
+                  <h3 className="text-lg font-semibold">Staff already at the company</h3>
+                  <Badge variant="outline">{staff.length}</Badge>
+                </div>
+                <Dialog open={staffOpen} onOpenChange={setStaffOpen}>
+                  <DialogTrigger asChild><Button size="sm" variant="outline"><Plus className="h-4 w-4 mr-2" /> Add staff record</Button></DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader><DialogTitle>Add staff details</DialogTitle></DialogHeader>
+                    <form onSubmit={addStaff} className="space-y-3">
+                      <div><Label>Full name</Label><Input name="full_name" required maxLength={120} /></div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div><Label>Email (optional)</Label><Input name="email" type="email" maxLength={255} /></div>
+                        <div><Label>Phone</Label><Input name="phone" maxLength={40} /></div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div><Label>ID / Passport #</Label><Input name="id_number" maxLength={60} /></div>
+                        <div><Label>Position</Label><Input name="position" maxLength={80} /></div>
+                      </div>
+                      <div><Label>Notes</Label><Input name="notes" maxLength={500} /></div>
+                      <Button type="submit" className="w-full">Save staff record</Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+              <p className="text-xs text-muted-foreground mb-3">For staff already on-site, capture their details directly instead of sending email invites.</p>
+              {staff.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No staff records yet.</p>
+              ) : (
+                <div className="space-y-2">
+                  {staff.map((s) => (
+                    <div key={s.id} className="flex items-center justify-between p-3 rounded-md bg-background/40 border border-border/60 gap-3 flex-wrap">
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium">{s.full_name} {s.position && <span className="text-muted-foreground">· {s.position}</span>}</div>
+                        <div className="text-xs text-muted-foreground flex flex-wrap gap-x-3">
+                          {s.email && <span><Mail className="h-3 w-3 inline mr-1" />{s.email}</span>}
+                          {s.phone && <span><Phone className="h-3 w-3 inline mr-1" />{s.phone}</span>}
+                          {s.id_number && <span><IdCard className="h-3 w-3 inline mr-1" />{s.id_number}</span>}
+                        </div>
+                      </div>
+                      <Button size="icon" variant="ghost" onClick={() => removeStaff(s.id)} aria-label="Remove"><Trash2 className="h-4 w-4" /></Button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </Card>
           )}
 

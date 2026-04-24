@@ -12,6 +12,7 @@ type Row = {
   organization_id: string;
   organization_name: string;
   is_demo: boolean;
+  member_count: number;
   total_views: number;
   unique_users: number;
   active_30d: number;
@@ -97,6 +98,7 @@ export default function AdminAnalytics() {
           <TableHeader>
             <TableRow>
               <TableHead>Organization</TableHead>
+              <TableHead className="text-right">Members</TableHead>
               <TableHead className="text-right">Views</TableHead>
               <TableHead className="text-right">Unique users</TableHead>
               <TableHead className="text-right">Active 7d</TableHead>
@@ -106,9 +108,9 @@ export default function AdminAnalytics() {
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow><TableCell colSpan={6} className="text-center py-10 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin inline mr-2" />Loading…</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center py-10 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin inline mr-2" />Loading…</TableCell></TableRow>
             ) : rows.length === 0 ? (
-              <TableRow><TableCell colSpan={6} className="text-center py-10 text-muted-foreground">No activity yet.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center py-10 text-muted-foreground">No activity yet.</TableCell></TableRow>
             ) : rows.map((r) => (
               <TableRow key={r.organization_id}>
                 <TableCell>
@@ -117,6 +119,7 @@ export default function AdminAnalytics() {
                     {r.is_demo && <Badge variant="secondary" className="text-[10px] h-4">Demo</Badge>}
                   </div>
                 </TableCell>
+                <TableCell className="text-right tabular-nums">{Number(r.member_count || 0).toLocaleString()}</TableCell>
                 <TableCell className="text-right tabular-nums">{Number(r.total_views).toLocaleString()}</TableCell>
                 <TableCell className="text-right tabular-nums">{Number(r.unique_users).toLocaleString()}</TableCell>
                 <TableCell className="text-right tabular-nums">{Number(r.active_7d).toLocaleString()}</TableCell>

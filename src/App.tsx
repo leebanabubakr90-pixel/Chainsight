@@ -17,6 +17,8 @@ import Assistant from "./pages/dashboard/Assistant";
 import Reports from "./pages/dashboard/Reports";
 import OrganizationPage from "./pages/dashboard/Organization";
 import AdminAnalytics from "./pages/dashboard/AdminAnalytics";
+import Shifts from "./pages/dashboard/Shifts";
+import TeamChat from "./pages/dashboard/TeamChat";
 import { AuthProvider } from "./hooks/useAuth";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { GuidedTour } from "./components/GuidedTour";
@@ -47,6 +49,8 @@ const App = () => (
             <Route path="/dashboard/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
             <Route path="/dashboard/organization" element={<ProtectedRoute><OrganizationPage /></ProtectedRoute>} />
             <Route path="/dashboard/admin-analytics" element={<ProtectedRoute><AdminAnalytics /></ProtectedRoute>} />
+            <Route path="/dashboard/shifts" element={<ProtectedRoute><Shifts /></ProtectedRoute>} />
+            <Route path="/dashboard/team-chat" element={<ProtectedRoute><TeamChat /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
             </Routes>
           </OrgSettingsProvider>

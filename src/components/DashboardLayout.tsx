@@ -9,6 +9,7 @@ import { useTrackDashboardView } from "@/hooks/useTrackDashboardView";
 import {
   LayoutDashboard, Package, TrendingUp, Route as RouteIcon, AlertTriangle,
   MessageSquare, FileText, Settings, LogOut, Building2, Check, ChevronsUpDown, BarChart3,
+  Clock, MessagesSquare,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Badge } from "./ui/badge";
@@ -21,6 +22,8 @@ const nav = [
   { to: "/dashboard/forecast", label: "Demand Forecast", icon: TrendingUp },
   { to: "/dashboard/routes", label: "Route Optimizer", icon: RouteIcon },
   { to: "/dashboard/bottlenecks", label: "Bottlenecks", icon: AlertTriangle },
+  { to: "/dashboard/team-chat", label: "Team Chat", icon: MessagesSquare },
+  { to: "/dashboard/shifts", label: "Shifts", icon: Clock },
   { to: "/dashboard/assistant", label: "AI Assistant", icon: MessageSquare },
   { to: "/dashboard/reports", label: "Reports", icon: FileText },
   { to: "/dashboard/organization", label: "Organization", icon: Settings },
