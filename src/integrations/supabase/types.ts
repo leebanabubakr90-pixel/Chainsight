@@ -777,6 +777,7 @@ export type Database = {
           active_7d: number
           is_demo: boolean
           last_activity: string
+          member_count: number
           organization_id: string
           organization_name: string
           total_views: number
