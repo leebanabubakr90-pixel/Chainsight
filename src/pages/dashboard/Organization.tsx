@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useOrganization } from "@/hooks/useOrganization";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Building2, Plus, Users, Sparkles, Loader2, Mail, UserPlus, Trash2, ShieldCheck, Clock } from "lucide-react";
+import { Building2, Plus, Users, Sparkles, Loader2, Mail, UserPlus, Trash2, ShieldCheck, Clock, IdCard, Phone } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -29,6 +29,8 @@ export default function OrganizationPage() {
   const [inviting, setInviting] = useState(false);
   const [seeding, setSeeding] = useState(false);
   const [open, setOpen] = useState(false);
+  const [staff, setStaff] = useState<any[]>([]);
+  const [staffOpen, setStaffOpen] = useState(false);
 
   const loadMembers = useCallback(async () => {
     if (!activeOrg) return;
@@ -63,10 +65,21 @@ export default function OrganizationPage() {
     setInvites(data || []);
   }, [activeOrg?.id]);
 
+  const loadStaff = useCallback(async () => {
+    if (!activeOrg) return;
+    const { data } = await supabase
+      .from("staff_details")
+      .select("*")
+      .eq("organization_id", activeOrg.id)
+      .order("created_at", { ascending: false });
+    setStaff(data || []);
+  }, [activeOrg?.id]);
+
   useEffect(() => {
     loadMembers();
     loadInvites();
-  }, [loadMembers, loadInvites]);
+    loadStaff();
+  }, [loadMembers, loadInvites, loadStaff]);
 
   const createOrg = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -149,6 +162,34 @@ export default function OrganizationPage() {
   };
 
   const isAdmin = myRole === "admin";
+
+  const addStaff = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!activeOrg || !user) return;
+    const f = new FormData(e.currentTarget);
+    const payload = {
+      organization_id: activeOrg.id,
+      full_name: String(f.get("full_name") || "").trim(),
+      email: String(f.get("email") || "").trim() || null,
+      phone: String(f.get("phone") || "").trim() || null,
+      id_number: String(f.get("id_number") || "").trim() || null,
+      position: String(f.get("position") || "").trim() || null,
+      notes: String(f.get("notes") || "").trim() || null,
+      added_by: user.id,
+    };
+    if (!payload.full_name) return;
+    const { error } = await supabase.from("staff_details").insert(payload);
+    if (error) { toast({ title: "Couldn't add", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Staff added", description: payload.full_name });
+    setStaffOpen(false);
+    loadStaff();
+  };
+
+  const removeStaff = async (id: string) => {
+    const { error } = await supabase.from("staff_details").delete().eq("id", id);
+    if (error) { toast({ title: "Couldn't remove", description: error.message, variant: "destructive" }); return; }
+    loadStaff();
+  };
 
   return (
     <DashboardLayout>
