@@ -16,6 +16,7 @@ const signupSchema = z.object({
   displayName: z.string().trim().min(1, "Name required").max(100),
   email: z.string().trim().email("Invalid email").max(255),
   password: z.string().min(8, "At least 8 characters").max(72),
+  orgName: z.string().trim().min(2, "Organization name required").max(80),
 });
 const loginSchema = z.object({
   email: z.string().trim().email("Invalid email").max(255),
@@ -62,26 +63,46 @@ export default function Auth() {
       displayName: form.get("displayName"),
       email: form.get("email"),
       password: form.get("password"),
+      orgName: form.get("orgName"),
     });
     if (!parsed.success) {
       toast({ title: "Invalid input", description: parsed.error.errors[0].message, variant: "destructive" });
       return;
     }
     setSubmitting(true);
-    const { error } = await supabase.auth.signUp({
+    const { data: signUpData, error } = await supabase.auth.signUp({
       email: parsed.data.email,
       password: parsed.data.password,
       options: {
         emailRedirectTo: `${window.location.origin}/dashboard`,
-        data: { display_name: parsed.data.displayName },
+        data: { display_name: parsed.data.displayName, pending_org_name: parsed.data.orgName },
       },
     });
-    setSubmitting(false);
     if (error) {
+      setSubmitting(false);
       toast({ title: "Sign-up failed", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Account created", description: "Welcome to ChainSight." });
+    // Try to also sign in (auto-confirm is on) and create the org as admin
+    const newUserId = signUpData.user?.id;
+    if (newUserId) {
+      const slug = parsed.data.orgName.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 60);
+      const { data: org, error: orgErr } = await supabase
+        .from("organizations")
+        .insert({ name: parsed.data.orgName, created_by: newUserId, slug })
+        .select()
+        .single();
+      if (orgErr) {
+        // Likely no session yet (email confirmation required); that's fine, dashboard will prompt to create org
+        console.warn("Org auto-create skipped:", orgErr.message);
+      } else if (org) {
+        await supabase.from("organization_members").insert({
+          organization_id: org.id, user_id: newUserId, role: "admin",
+        });
+      }
+    }
+    setSubmitting(false);
+    toast({ title: "Welcome aboard", description: `${parsed.data.orgName} is ready.` });
     navigate("/dashboard");
   };
 
@@ -98,6 +119,9 @@ export default function Auth() {
           </TabsList>
           <TabsContent value="login">
             <form onSubmit={onLogin} className="space-y-4">
+              <p className="text-xs text-muted-foreground -mt-2">
+                For teams whose organization is already on ChainSight. Need a new account? <button type="button" onClick={() => setTab("signup")} className="text-primary underline">Get started</button>.
+              </p>
               <div>
                 <Label htmlFor="email">Email</Label>
                 <Input id="email" name="email" type="email" autoComplete="email" required placeholder="you@company.com" />
@@ -113,9 +137,17 @@ export default function Auth() {
           </TabsContent>
           <TabsContent value="signup">
             <form onSubmit={onSignup} className="space-y-4">
+              <p className="text-xs text-muted-foreground -mt-2">
+                Create your organization and become its admin. Already have an account? <button type="button" onClick={() => setTab("login")} className="text-primary underline">Sign in</button> instead.
+              </p>
               <div>
                 <Label htmlFor="su-name">Your name</Label>
                 <Input id="su-name" name="displayName" required placeholder="Jane Operator" />
+              </div>
+              <div>
+                <Label htmlFor="su-org">Organization name</Label>
+                <Input id="su-org" name="orgName" required placeholder="Acme Logistics" minLength={2} maxLength={80} />
+                <p className="text-xs text-muted-foreground mt-1">You'll be the admin and can invite teammates after signup.</p>
               </div>
               <div>
                 <Label htmlFor="su-email">Work email</Label>

@@ -19,8 +19,12 @@ export const PublicNav = () => {
             <Link to="/dashboard"><Button variant="default">Open dashboard</Button></Link>
           ) : (
             <>
-              <Link to="/auth"><Button variant="ghost">Sign in</Button></Link>
-              <Link to="/auth?mode=signup"><Button>Get started</Button></Link>
+              <Link to="/auth?mode=login" title="For organizations that already have an account">
+                <Button variant="ghost">Sign in</Button>
+              </Link>
+              <Link to="/auth?mode=signup" title="Create your organization and invite your team">
+                <Button>Get started</Button>
+              </Link>
             </>
           )}
         </div>
