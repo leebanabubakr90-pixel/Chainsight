@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Search, Trash2 } from "lucide-react";
+import { Plus, Search, Trash2, Pencil } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 const statusColor: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
@@ -21,6 +21,7 @@ export default function Shipments() {
   const [shipments, setShipments] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<any | null>(null);
 
   const load = async () => {
     if (!activeOrg) return;
@@ -54,6 +55,30 @@ export default function Shipments() {
 
   const handleDelete = async (id: string) => {
     await supabase.from("shipments").delete().eq("id", id);
+    load();
+  };
+
+  const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editing) return;
+    const f = new FormData(e.currentTarget);
+    const { error } = await supabase
+      .from("shipments")
+      .update({
+        tracking_code: String(f.get("tracking") || ""),
+        product: String(f.get("product") || ""),
+        origin: String(f.get("origin") || ""),
+        destination: String(f.get("destination") || ""),
+        carrier: String(f.get("carrier") || ""),
+        mode: String(f.get("mode") || "sea"),
+        units: Number(f.get("units") || 1),
+        cost: Number(f.get("cost") || 0),
+        status: String(f.get("status") || "pending"),
+      })
+      .eq("id", editing.id);
+    if (error) { toast({ title: "Update failed", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Shipment updated" });
+    setEditing(null);
     load();
   };
 
@@ -132,6 +157,9 @@ export default function Shipments() {
                   </span>
                 </TableCell>
                 <TableCell>
+                  <Button size="icon" variant="ghost" onClick={() => setEditing(s)}>
+                    <Pencil className="h-4 w-4 text-muted-foreground" />
+                  </Button>
                   <Button size="icon" variant="ghost" onClick={() => handleDelete(s.id)}>
                     <Trash2 className="h-4 w-4 text-muted-foreground" />
                   </Button>
@@ -141,6 +169,28 @@ export default function Shipments() {
           </TableBody>
         </Table>
       </Card>
+
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit shipment</DialogTitle></DialogHeader>
+          {editing && (
+            <form onSubmit={handleUpdate} className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div><Label>Tracking code</Label><Input name="tracking" defaultValue={editing.tracking_code} required /></div>
+                <div><Label>Product</Label><Input name="product" defaultValue={editing.product} required /></div>
+                <div><Label>Origin</Label><Input name="origin" defaultValue={editing.origin} required /></div>
+                <div><Label>Destination</Label><Input name="destination" defaultValue={editing.destination} required /></div>
+                <div><Label>Carrier</Label><Input name="carrier" defaultValue={editing.carrier || ""} /></div>
+                <div><Label>Mode</Label><Input name="mode" defaultValue={editing.mode || "sea"} /></div>
+                <div><Label>Units</Label><Input name="units" type="number" defaultValue={editing.units} /></div>
+                <div><Label>Cost</Label><Input name="cost" type="number" defaultValue={editing.cost} /></div>
+                <div className="col-span-2"><Label>Status</Label><Input name="status" defaultValue={editing.status} placeholder="pending | in_transit | delivered | delayed" /></div>
+              </div>
+              <Button type="submit" className="w-full">Save changes</Button>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }
